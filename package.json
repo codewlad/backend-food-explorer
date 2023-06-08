@@ -1,0 +1,20 @@
+{
+  "name": "backend-food-explorer",
+  "version": "1.0.0",
+  "description": "API do projeto final do programa Explorer da Rocketseat",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./src/server.js",
+    "dev": "nodemon ./src/server.js"
+  },
+  "keywords": [],
+  "author": "Wladimir Gonçalves",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "express-async-errors": "^3.1.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}
