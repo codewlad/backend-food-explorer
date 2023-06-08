@@ -1,3 +1,3 @@
 Continuar em:
 
-* Stage 08 > Organizando a estrutura do projeto
+* Stage 08 > Query Builder > Instalando Knex.js
