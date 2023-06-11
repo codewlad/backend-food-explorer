@@ -1,3 +1,3 @@
 Continuar em:
 
-* Stage 08 > Query Builder > Instalando Knex.js
+* Stage 08 > Query Builder > Cadastrando nota
