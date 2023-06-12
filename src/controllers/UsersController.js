@@ -17,7 +17,8 @@ class UsersController {
         await knex("users").insert({
             name,
             email,
-            password: hashedPassword
+            password: hashedPassword,
+            created_at: new Date().toLocaleString()
         });
 
         return res.status(201).json();

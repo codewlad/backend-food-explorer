@@ -52,6 +52,7 @@ class DishesController {
             const filterIngredients = ingredients.split(',').map(ingredient => ingredient.trim());
 
             dishes = await knex("ingredients")
+                .distinct("dishes.id")
                 .select([
                     "dishes.id",
                     "dishes.image",
