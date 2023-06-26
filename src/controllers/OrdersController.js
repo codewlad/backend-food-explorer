@@ -1,8 +1,9 @@
 const knex = require("../database/knex");
+const AppError = require("../utils/AppError");
 
 class OrdersController {
     async create(req, res) {
-        const { user_id } = req.params;
+        const user_id = req.user.id;
         const { dishes } = req.body;
 
         let total = 0;
@@ -47,9 +48,8 @@ class OrdersController {
             });
 
             res.json({ success: true });
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ error: "Ocorreu um erro ao processar o pedido." });
+        } catch {
+            throw new AppError("Ocorreu um erro ao acessar o pedido.", 500);
         }
     }
 
@@ -92,10 +92,9 @@ class OrdersController {
                 });
             });
 
-            res.json({ success: true });
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ error: "Ocorreu um erro ao atualizar o pedido." });
+            return res.json({ success: true });
+        } catch {
+            throw new AppError("Ocorreu um erro ao atualizar o pedido.", 500);
         }
     }
 }
