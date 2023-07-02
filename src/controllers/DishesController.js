@@ -1,63 +1,122 @@
 const knex = require("../database/knex");
 const DiskStorage = require("../providers/DiskStorage");
+const AppError = require("../utils/AppError");
 
 class DishesController {
     async create(req, res) {
-        const imageFilename = req.file ? req.file.filename : null;
-        const { name, category, price, description, ingredients } = req.body;
+        try {
+            const { name, category, price, description, ingredients } = req.body;
 
-        if (imageFilename) {
-            const diskStorage = new DiskStorage();
-
-            await diskStorage.saveFile(imageFilename);
-        }
-
-        const [dish_id] = await knex("dishes").insert({
-            image: imageFilename,
-            name,
-            category,
-            price,
-            description
-        });
-
-        const ingredientsInsert = JSON.parse(ingredients).map(name => {
-            return {
-                dish_id,
-                name
+            if (!name || !category || !price || !description || !ingredients) {
+                throw new AppError("Campos obrigatórios ausentes.", 400);
             }
-        });
 
-        await knex("ingredients").insert(ingredientsInsert);
+            let imageFilename = null;
 
-        return res.json();
+            if (req.file) {
+                const diskStorage = new DiskStorage();
+
+                try {
+                    imageFilename = await diskStorage.saveFile(req.file.filename);
+                } catch {
+                    throw new AppError("Erro ao carregar a imagem.", 500);
+                }
+            }
+
+            await knex.transaction(async (trx) => {
+                const [dish] = await trx('dishes').insert({
+                    image: imageFilename,
+                    name,
+                    category,
+                    price,
+                    description
+                }).returning('*');
+
+                const ingredientsInsert = JSON.parse(ingredients).map(name => ({
+                    dish_id: dish.id,
+                    name
+                }));
+
+                await trx('ingredients').insert(ingredientsInsert);
+            });
+
+            return res.status(201).json({ Mensagem: 'Prato adicionado com sucesso!' });
+        } catch {
+            throw new AppError("Não foi possível adicionar o prato.", 500);
+        }
     }
 
     async update(req, res) {
-        const { id, name, category, price, description, ingredients } = req.body;
+        try {
+            const { id } = req.params;
+            const { name, category, price, description, ingredients, removeDishImage } = req.body;
 
-        await knex("dishes")
-            .where({ id })
-            .update({
-                name,
-                category,
-                price,
-                description
+            if (!id || (!name && !category && !price && !description && !ingredients)) {
+                throw new AppError("ID do prato ausente ou nenhum campo para atualizar fornecido.", 400);
+            }
+
+            const dishUpdates = {};
+
+            if (name) {
+                dishUpdates.name = name;
+            }
+
+            if (category) {
+                dishUpdates.category = category;
+            }
+
+            if (price) {
+                dishUpdates.price = price;
+            }
+
+            if (description) {
+                dishUpdates.description = description;
+            }
+
+            let imageFilename = null;
+
+            if (req.file) {
+                const diskStorage = new DiskStorage();
+
+                try {
+                    imageFilename = await diskStorage.saveFile(req.file.filename);
+                    dishUpdates.image = imageFilename;
+                } catch {
+                    throw new AppError("Erro ao carregar a imagem.", 500);
+                }
+            }
+
+            const dish = await knex("dishes").where({ id }).first();
+
+            if (!removeDishImage) {
+                const diskStorage = new DiskStorage();
+                await diskStorage.deleteFile(dish.image);
+                dishUpdates.image = null;
+            }
+
+            await knex.transaction(async (trx) => {
+                await trx('dishes').update(dishUpdates).where('id', id);
+
+                if (ingredients) {
+                    const ingredientsArray = JSON.parse(ingredients);
+
+                    await trx('ingredients').where('dish_id', id).del();
+
+                    if (ingredientsArray.length > 0) {
+                        const ingredientsInsert = ingredientsArray.map(ingredient => ({
+                            dish_id: id,
+                            name: ingredient
+                        }));
+
+                        await trx('ingredients').insert(ingredientsInsert);
+                    }
+                }
             });
 
-        await knex("ingredients")
-            .where({ dish_id: id })
-            .del();
-
-        const ingredientsInsert = ingredients.map(name => {
-            return {
-                dish_id: id,
-                name
-            };
-        });
-
-        await knex("ingredients").insert(ingredientsInsert);
-
-        return res.json();
+            return res.status(200).json({ message: 'Prato atualizado com sucesso!' });
+        } catch {
+            throw new AppError("Não foi possível atualizar o prato@.", 500);
+        }
     }
 
     async show(req, res) {
