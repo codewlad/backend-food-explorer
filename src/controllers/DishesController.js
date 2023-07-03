@@ -141,13 +141,11 @@ class DishesController {
     }
 
     async index(req, res) {
-        const { name, ingredients } = req.query;
+        const { itemSearch } = req.query;
 
         let dishes;
 
-        if (ingredients) {
-            const filterIngredients = ingredients.split(',').map(ingredient => ingredient.trim());
-
+        if (itemSearch) {
             dishes = await knex("ingredients")
                 .distinct("dishes.id")
                 .select([
@@ -158,25 +156,26 @@ class DishesController {
                     "dishes.price",
                     "dishes.description",
                 ])
-                .whereLike("dishes.name", `%${name}%`)
-                .andWhereLike("ingredients.name", `%${filterIngredients}%`)
+                .where(function () {
+                    this.whereLike("dishes.name", `%${itemSearch}%`)
+                        .orWhereLike("ingredients.name", `%${itemSearch}%`);
+                })
                 .innerJoin("dishes", "dishes.id", "ingredients.dish_id");
 
         } else {
             dishes = await knex("dishes")
-                .whereLike("name", `%${name}%`)
                 .orderBy("name");
         }
 
         const dishesIngredients = await knex("ingredients");
 
         const dishesWithIngredients = dishes.map(dish => {
-            const dishIngredients = dishesIngredients.filter(ingredient => ingredient.dish_id === dish.id)
+            const dishIngredients = dishesIngredients.filter(ingredient => ingredient.dish_id === dish.id);
 
             return {
                 ...dish,
                 ingredients: dishIngredients
-            }
+            };
         });
 
         return res.json(dishesWithIngredients);
