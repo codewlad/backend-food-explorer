@@ -7,5 +7,6 @@ const favoritesRoutes = Router();
 const favoritesController = new FavoritesController();
 
 favoritesRoutes.post("/", favoritesController.create);
+favoritesRoutes.get("/:user_id", favoritesController.index);
 
 module.exports = favoritesRoutes;
