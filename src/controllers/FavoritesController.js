@@ -26,18 +26,21 @@ class FavoritesController {
             .select('favorites.id', 'favorites.dish_id', 'dishes.image', 'dishes.name')
             .join('dishes', 'favorites.dish_id', 'dishes.id')
             .where('favorites.user_id', user_id);
-        /*
-        .then(results => {
-            // Manipule os resultados aqui
-            console.log(results);
-        })
-        .catch(error => {
-            // Lida com erros aqui
-            console.error(error);
-        });
-        */
 
         return res.json(userFavorites);
+    }
+
+    async delete(req, res) {
+        try {
+            const { id } = req.params;
+
+            await knex("favorites").where({ id }).delete();
+
+            return res.json();
+
+        } catch {
+            throw new AppError("Não foi possível remover dos favoritos.", 500);
+        }
     }
 }
 
