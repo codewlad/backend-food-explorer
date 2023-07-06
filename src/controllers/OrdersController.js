@@ -97,6 +97,46 @@ class OrdersController {
             throw new AppError("Ocorreu um erro ao atualizar o pedido.", 500);
         }
     }
+
+    async index(req, res) {
+        const { user_id } = req.params;
+
+        try {
+            const order = await knex
+                .select('*')
+                .from('orders')
+                .where('user_id', user_id)
+                .andWhere('status', 'aberto')
+                .first();
+
+            if (!order) {
+                res.json({});
+                return;
+            }
+
+            const orderItems = await knex('order_items')
+                .where('order_id', order.id)
+                .select('*');
+
+            const dishes = orderItems.map(item => ({
+                dish_id: item.dish_id,
+                amount: item.amount
+            }));
+
+            const totalAmountResult = await knex('order_items')
+                .where('order_id', order.id)
+                .sum('amount as totalAmount')
+                .first();
+
+            const totalAmount = totalAmountResult.totalAmount || 0;
+
+            const orderWithDishes = { ...order, dishes, totalAmount };
+
+            res.json(orderWithDishes);
+        } catch {
+            throw new AppError("Ocorreu um erro ao buscar o pedido.", 500);
+        }
+    }
 }
 
 module.exports = OrdersController;
