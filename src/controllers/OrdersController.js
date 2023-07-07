@@ -115,12 +115,16 @@ class OrdersController {
             }
 
             const orderItems = await knex('order_items')
-                .where('order_id', order.id)
-                .select('*');
+                .join('dishes', 'order_items.dish_id', 'dishes.id')
+                .where('order_items.order_id', order.id)
+                .select('order_items.dish_id', 'dishes.image', 'dishes.name', 'order_items.amount', 'order_items.total');
 
             const dishes = orderItems.map(item => ({
                 dish_id: item.dish_id,
-                amount: item.amount
+                image: item.image,
+                name: item.name,
+                amount: item.amount,
+                total: item.total
             }));
 
             const totalAmountResult = await knex('order_items')
