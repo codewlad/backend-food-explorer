@@ -121,7 +121,6 @@ class DishesController {
 
     async show(req, res) {
         const { id } = req.params;
-        const isAdmin = req.user.isAdmin;
 
         const dish = await knex("dishes").where({ id }).first();
         const ingredients = await knex("ingredients").where({ dish_id: id }).orderBy("name");
