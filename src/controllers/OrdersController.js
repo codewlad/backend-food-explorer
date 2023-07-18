@@ -3,36 +3,35 @@ const AppError = require("../utils/AppError");
 
 class OrdersController {
     async create(req, res) {
-        const user_id = req.user.id;
-        const { dishes } = req.body;
+        const { order } = req.body;
 
         let total = 0;
         const dishPrices = {};
 
         try {
             await knex.transaction(async (trx) => {
-
-                const dishIds = dishes.map((dish) => dish.dish_id);
+                const dishIds = order.dishes.map((dish) => dish.dish_id);
                 const orderItems = await trx("dishes").whereIn("id", dishIds);
                 orderItems.forEach((orderItem) => {
                     dishPrices[orderItem.id] = orderItem.price;
                 });
 
-                for (const dish of dishes) {
+                for (const dish of order.dishes) {
                     const dishPrice = dishPrices[dish.dish_id];
                     const totalDish = dishPrice * dish.amount;
                     total += totalDish;
                 }
 
-                const order = {
-                    user_id,
+                const newOrder = {
+                    user_id: order.user_id,
                     total,
-                    orders_at: new Date().toLocaleString()
+                    orders_at: new Date().toLocaleString(),
+                    status: order.status,
                 };
 
-                const [order_id] = await trx("orders").insert(order);
+                const [order_id] = await trx("orders").insert(newOrder);
 
-                for (const dish of dishes) {
+                for (const dish of order.dishes) {
                     const dishPrice = dishPrices[dish.dish_id];
                     const totalItem = dishPrice * dish.amount;
 
@@ -48,8 +47,9 @@ class OrdersController {
             });
 
             res.json({ success: true });
+
         } catch {
-            throw new AppError("Ocorreu um erro ao acessar o pedido.", 500);
+            throw new AppError("Ocorreu um erro ao criar o pedido.", 500);
         }
     }
 
