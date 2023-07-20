@@ -54,45 +54,16 @@ class OrdersController {
     }
 
     async update(req, res) {
-        const { order_id } = req.params;
-        const { dishes, status } = req.body;
-
-        let total = 0;
-        const dishPrices = {};
+        const { id } = req.params;
+        const { status } = req.body;
 
         try {
-            await knex.transaction(async (trx) => {
-                const dishIds = dishes.map((dish) => dish.dish_id);
-                const orderItems = await trx("dishes").whereIn("id", dishIds);
-                orderItems.forEach((orderItem) => {
-                    dishPrices[orderItem.id] = orderItem.price;
-                });
+            await knex('orders')
+                .where('id', id)
+                .update({ status });
 
-                await trx("order_items").where("order_id", order_id).delete();
+            res.json({ success: true, message: 'Status atualizado com sucesso.' });
 
-                for (const dish of dishes) {
-                    const dishPrice = dishPrices[dish.dish_id];
-                    const totalDish = dishPrice * dish.amount;
-                    total += totalDish;
-
-                    const orderItem = {
-                        order_id,
-                        dish_id: dish.dish_id,
-                        amount: dish.amount,
-                        total: totalDish,
-                    };
-
-                    await trx("order_items").insert(orderItem);
-                }
-
-                await trx("orders").where("id", order_id).update({
-                    total,
-                    status,
-                    orders_at: new Date().toLocaleString()
-                });
-            });
-
-            return res.json({ success: true });
         } catch {
             throw new AppError("Ocorreu um erro ao atualizar o pedido.", 500);
         }
@@ -102,43 +73,92 @@ class OrdersController {
         const { user_id } = req.params;
 
         try {
-            const order = await knex
+            const orders = await knex
                 .select('*')
                 .from('orders')
-                .where('user_id', user_id)
-                .andWhere('status', 'aberto')
-                .first();
+                .where('user_id', user_id);
 
-            if (!order) {
-                res.json({});
+            if (!orders || orders.length === 0) {
+                res.json([]);
                 return;
             }
 
-            const orderItems = await knex('order_items')
-                .join('dishes', 'order_items.dish_id', 'dishes.id')
-                .where('order_items.order_id', order.id)
-                .select('order_items.dish_id', 'dishes.image', 'dishes.name', 'order_items.amount', 'order_items.total');
+            const ordersWithDishes = [];
 
-            const dishes = orderItems.map(item => ({
-                dish_id: item.dish_id,
-                image: item.image,
-                name: item.name,
-                amount: item.amount,
-                total: item.total
-            }));
+            for (const order of orders) {
+                const orderItems = await knex('order_items')
+                    .join('dishes', 'order_items.dish_id', 'dishes.id')
+                    .where('order_items.order_id', order.id)
+                    .select('order_items.dish_id', 'dishes.image', 'dishes.name', 'order_items.amount', 'order_items.total');
 
-            const totalAmountResult = await knex('order_items')
-                .where('order_id', order.id)
-                .sum('amount as totalAmount')
-                .first();
+                const dishes = orderItems.map(item => ({
+                    dish_id: item.dish_id,
+                    image: item.image,
+                    name: item.name,
+                    amount: item.amount,
+                    total: item.total
+                }));
 
-            const totalAmount = totalAmountResult.totalAmount || 0;
+                const totalAmountResult = await knex('order_items')
+                    .where('order_id', order.id)
+                    .sum('amount as totalAmount')
+                    .first();
 
-            const orderWithDishes = { ...order, dishes, totalAmount };
+                const totalAmount = totalAmountResult.totalAmount || 0;
 
-            res.json(orderWithDishes);
+                const orderWithDishes = { ...order, dishes, totalAmount };
+
+                ordersWithDishes.push(orderWithDishes);
+            }
+
+            res.json(ordersWithDishes);
         } catch {
-            throw new AppError("Ocorreu um erro ao buscar o pedido.", 500);
+            throw new AppError("Ocorreu um erro ao buscar os pedidos.", 500);
+        }
+    }
+
+    async show(req, res) {
+        try {
+            const orders = await knex
+                .select('*')
+                .from('orders');
+
+            if (!orders || orders.length === 0) {
+                res.json([]);
+                return;
+            }
+
+            const ordersWithDishes = [];
+
+            for (const order of orders) {
+                const orderItems = await knex('order_items')
+                    .join('dishes', 'order_items.dish_id', 'dishes.id')
+                    .where('order_items.order_id', order.id)
+                    .select('order_items.dish_id', 'dishes.image', 'dishes.name', 'order_items.amount', 'order_items.total');
+
+                const dishes = orderItems.map(item => ({
+                    dish_id: item.dish_id,
+                    image: item.image,
+                    name: item.name,
+                    amount: item.amount,
+                    total: item.total
+                }));
+
+                const totalAmountResult = await knex('order_items')
+                    .where('order_id', order.id)
+                    .sum('amount as totalAmount')
+                    .first();
+
+                const totalAmount = totalAmountResult.totalAmount || 0;
+
+                const orderWithDishes = { ...order, dishes, totalAmount };
+
+                ordersWithDishes.push(orderWithDishes);
+            }
+
+            res.json(ordersWithDishes);
+        } catch {
+            throw new AppError("Ocorreu um erro ao buscar os pedidos.", 500);
         }
     }
 }

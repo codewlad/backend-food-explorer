@@ -7,8 +7,7 @@ const createUsers = `
         avatar VARCHAR NULL,
         is_admin BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        last_login TIMESTAMP NULL
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 `;
 
