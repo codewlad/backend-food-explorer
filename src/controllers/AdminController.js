@@ -16,6 +16,14 @@ class AdminController {
 
         return res.status(201).json();
     };
+
+    async show(req, res) {
+        const response = await knex("users")
+            .where("is_admin", true)
+            .first();
+
+        res.json(response);
+    }
 };
 
 module.exports = AdminController;
