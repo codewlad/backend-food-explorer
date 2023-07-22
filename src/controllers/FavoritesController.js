@@ -8,7 +8,7 @@ class FavoritesController {
 
         if (checkIfIsFavorite) {
             await knex("favorites").where("id", checkIfIsFavorite.id).delete();
-            return res.json({ success: "Removido dos favoritos." });
+            return res.json({ success: "Removido dos favoritos.", favorite: false });
         }
 
         await knex("favorites").insert({
@@ -16,7 +16,7 @@ class FavoritesController {
             dish_id
         })
 
-        return res.json({ success: "Adicionado aos favoritos." });
+        return res.json({ success: "Adicionado aos favoritos.", favorite: true });
     }
 
     async index(req, res) {

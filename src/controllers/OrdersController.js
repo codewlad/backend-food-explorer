@@ -76,7 +76,8 @@ class OrdersController {
             const orders = await knex
                 .select('*')
                 .from('orders')
-                .where('user_id', user_id);
+                .where('user_id', user_id)
+                .orderBy('orders_at', 'desc');
 
             if (!orders || orders.length === 0) {
                 res.json([]);
@@ -121,7 +122,8 @@ class OrdersController {
         try {
             const orders = await knex
                 .select('*')
-                .from('orders');
+                .from('orders')
+                .orderBy('orders_at', 'desc');
 
             if (!orders || orders.length === 0) {
                 res.json([]);
