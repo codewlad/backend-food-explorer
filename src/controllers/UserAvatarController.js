@@ -12,12 +12,12 @@ class UserAvatarController {
         const user = await knex("users").where({ id: user_id }).first();
 
         if (!user) {
-            throw new AppError("Somente usuários autenticados podem mudar o avatar", 401);
-        }
+            throw new AppError("Somente usuários autenticados podem mudar o avatar", 404);
+        };
 
         if (user.avatar) {
             await diskStorage.deleteFile(user.avatar);
-        }
+        };
 
         const filename = await diskStorage.saveFile(avatarFilename);
         user.avatar = filename;
@@ -25,7 +25,7 @@ class UserAvatarController {
         await knex("users").update(user).where({ id: user_id });
 
         return res.json(user);
-    }
+    };
 }
 
 module.exports = UserAvatarController;

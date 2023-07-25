@@ -7,7 +7,7 @@ function ensureAuthenticated(req, res, next) {
 
     if (!authHeader) {
         throw new AppError("JWT Token não informado.", 401);
-    }
+    };
 
     const [, token] = authHeader.split(" ");
 
@@ -22,7 +22,7 @@ function ensureAuthenticated(req, res, next) {
         return next();
     } catch {
         throw new AppError("JWT Token inválido.", 401);
-    }
+    };
 }
 
 module.exports = ensureAuthenticated;

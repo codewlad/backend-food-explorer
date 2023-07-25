@@ -3,27 +3,35 @@ const knex = require("../database/knex");
 
 class AdminController {
     async create(req, res) {
-        const { name, email, password } = req.body;
+        try {
+            const { name, email, password } = req.body;
 
-        const hashedPassword = await hash(password, 8);
+            const hashedPassword = await hash(password, 8);
 
-        await knex("users").insert({
-            name,
-            email,
-            is_admin: true,
-            password: hashedPassword
-        });
+            await knex("users").insert({
+                name,
+                email,
+                is_admin: true,
+                password: hashedPassword
+            });
 
-        return res.status(201).json();
+            return res.status(201).json({ Mensagem: "Administrador cadastrado com sucesso!" });
+        } catch {
+            throw new AppError("Não foi possível cadastrar o administrador.", 500);
+        };
     };
 
     async show(req, res) {
-        const response = await knex("users")
-            .where("is_admin", true)
-            .first();
+        try {
+            const response = await knex("users")
+                .where("is_admin", true)
+                .first();
 
-        res.json(response);
-    }
+            return res.status(200).json(response);
+        } catch {
+            throw new AppError("Não foi possível buscar o administrador.", 500);
+        };
+    };
 };
 
 module.exports = AdminController;

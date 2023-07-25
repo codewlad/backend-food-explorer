@@ -3,12 +3,12 @@ const AppError = require("../utils/AppError");
 
 class OrdersController {
     async create(req, res) {
-        const { order } = req.body;
-
-        let total = 0;
-        const dishPrices = {};
-
         try {
+            const { order } = req.body;
+
+            let total = 0;
+            const dishPrices = {};
+
             await knex.transaction(async (trx) => {
                 const dishIds = order.dishes.map((dish) => dish.dish_id);
                 const orderItems = await trx("dishes").whereIn("id", dishIds);
@@ -20,7 +20,7 @@ class OrdersController {
                     const dishPrice = dishPrices[dish.dish_id];
                     const totalDish = dishPrice * dish.amount;
                     total += totalDish;
-                }
+                };
 
                 const newOrder = {
                     user_id: order.user_id,
@@ -43,54 +43,51 @@ class OrdersController {
                     };
 
                     await trx("order_items").insert(orderItem);
-                }
+                };
             });
 
-            res.json({ success: true });
-
+            return res.status(201).json({ Mensagem: "Pedido criado com sucesso!" });
         } catch {
             throw new AppError("Ocorreu um erro ao criar o pedido.", 500);
-        }
-    }
+        };
+    };
 
     async update(req, res) {
-        const { id } = req.params;
-        const { status } = req.body;
-
         try {
-            await knex('orders')
-                .where('id', id)
+            const { id } = req.params;
+            const { status } = req.body;
+
+            await knex("orders")
+                .where("id", id)
                 .update({ status });
 
-            res.json({ success: true, message: 'Status atualizado com sucesso.' });
-
+            return res.status(200).json({ Mensagem: "Status atualizado com sucesso!" });
         } catch {
             throw new AppError("Ocorreu um erro ao atualizar o pedido.", 500);
-        }
-    }
+        };
+    };
 
     async index(req, res) {
-        const { user_id } = req.params;
-
         try {
+            const { user_id } = req.params;
+
             const orders = await knex
-                .select('*')
-                .from('orders')
-                .where('user_id', user_id)
-                .orderBy('orders_at', 'desc');
+                .select("*")
+                .from("orders")
+                .where("user_id", user_id)
+                .orderBy("orders_at", "desc");
 
             if (!orders || orders.length === 0) {
-                res.json([]);
-                return;
-            }
+                return res.json([]);
+            };
 
             const ordersWithDishes = [];
 
             for (const order of orders) {
-                const orderItems = await knex('order_items')
-                    .join('dishes', 'order_items.dish_id', 'dishes.id')
-                    .where('order_items.order_id', order.id)
-                    .select('order_items.dish_id', 'dishes.image', 'dishes.name', 'order_items.amount', 'order_items.total');
+                const orderItems = await knex("order_items")
+                    .join("dishes", "order_items.dish_id", "dishes.id")
+                    .where("order_items.order_id", order.id)
+                    .select("order_items.dish_id", "dishes.image", "dishes.name", "order_items.amount", "order_items.total");
 
                 const dishes = orderItems.map(item => ({
                     dish_id: item.dish_id,
@@ -100,9 +97,9 @@ class OrdersController {
                     total: item.total
                 }));
 
-                const totalAmountResult = await knex('order_items')
-                    .where('order_id', order.id)
-                    .sum('amount as totalAmount')
+                const totalAmountResult = await knex("order_items")
+                    .where("order_id", order.id)
+                    .sum("amount as totalAmount")
                     .first();
 
                 const totalAmount = totalAmountResult.totalAmount || 0;
@@ -110,33 +107,32 @@ class OrdersController {
                 const orderWithDishes = { ...order, dishes, totalAmount };
 
                 ordersWithDishes.push(orderWithDishes);
-            }
+            };
 
-            res.json(ordersWithDishes);
+            return res.status(200).json(ordersWithDishes);
         } catch {
             throw new AppError("Ocorreu um erro ao buscar os pedidos.", 500);
-        }
-    }
+        };
+    };
 
     async show(req, res) {
         try {
             const orders = await knex
-                .select('*')
-                .from('orders')
-                .orderBy('orders_at', 'desc');
+                .select("*")
+                .from("orders")
+                .orderBy("orders_at", "desc");
 
             if (!orders || orders.length === 0) {
-                res.json([]);
-                return;
-            }
+                return res.json([]);
+            };
 
             const ordersWithDishes = [];
 
             for (const order of orders) {
-                const orderItems = await knex('order_items')
-                    .join('dishes', 'order_items.dish_id', 'dishes.id')
-                    .where('order_items.order_id', order.id)
-                    .select('order_items.dish_id', 'dishes.image', 'dishes.name', 'order_items.amount', 'order_items.total');
+                const orderItems = await knex("order_items")
+                    .join("dishes", "order_items.dish_id", "dishes.id")
+                    .where("order_items.order_id", order.id)
+                    .select("order_items.dish_id", "dishes.image", "dishes.name", "order_items.amount", "order_items.total");
 
                 const dishes = orderItems.map(item => ({
                     dish_id: item.dish_id,
@@ -146,9 +142,9 @@ class OrdersController {
                     total: item.total
                 }));
 
-                const totalAmountResult = await knex('order_items')
-                    .where('order_id', order.id)
-                    .sum('amount as totalAmount')
+                const totalAmountResult = await knex("order_items")
+                    .where("order_id", order.id)
+                    .sum("amount as totalAmount")
                     .first();
 
                 const totalAmount = totalAmountResult.totalAmount || 0;
@@ -156,13 +152,13 @@ class OrdersController {
                 const orderWithDishes = { ...order, dishes, totalAmount };
 
                 ordersWithDishes.push(orderWithDishes);
-            }
+            };
 
-            res.json(ordersWithDishes);
+            return res.status(200).json(ordersWithDishes);
         } catch {
             throw new AppError("Ocorreu um erro ao buscar os pedidos.", 500);
-        }
-    }
+        };
+    };
 }
 
 module.exports = OrdersController;
