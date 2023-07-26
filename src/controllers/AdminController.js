@@ -1,36 +1,26 @@
-const { hash } = require("bcryptjs");
-const knex = require("../database/knex");
+const AdminRepository = require("../repositories/AdminRepository");
+const AdminCreateService = require("../services/AdminCreateService");
+const AdminShowService = require("../services/AdminShowService");
+
+const adminRepository = new AdminRepository();
 
 class AdminController {
     async create(req, res) {
-        try {
-            const { name, email, password } = req.body;
+        const { name, email, password } = req.body;
 
-            const hashedPassword = await hash(password, 8);
+        const adminCreateService = new AdminCreateService(adminRepository);
 
-            await knex("users").insert({
-                name,
-                email,
-                is_admin: true,
-                password: hashedPassword
-            });
+        const response = await adminCreateService.execute({ name, email, password });
 
-            return res.status(201).json({ Mensagem: "Administrador cadastrado com sucesso!" });
-        } catch {
-            throw new AppError("Não foi possível cadastrar o administrador.", 500);
-        };
+        return res.status(201).json(response);
     };
 
     async show(req, res) {
-        try {
-            const response = await knex("users")
-                .where("is_admin", true)
-                .first();
+        const adminShowService = new AdminShowService(adminRepository);
 
-            return res.status(200).json(response);
-        } catch {
-            throw new AppError("Não foi possível buscar o administrador.", 500);
-        };
+        const isAdmin = await adminShowService.execute();
+
+        return res.status(201).json(isAdmin);
     };
 };
 

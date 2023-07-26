@@ -10,9 +10,9 @@ class UsersController {
 
         const userCreateService = new UserCreateService(userRepository);
 
-        await userCreateService.execute({ name, email, password });
+        const response = await userCreateService.execute({ name, email, password });
 
-        return res.status(201).json({ Mensagem: "Usuário cadastrado com sucesso!" });
+        return res.status(201).json(response);
     };
 
     async update(req, res) {

@@ -1,55 +1,49 @@
-const knex = require("../database/knex");
+const FavoriteRepository = require("../repositories/FavoriteRepository");
+const FavoriteCreateService = require("../services/FavoriteCreateService");
+const FavoriteShowService = require("../services/FavoriteShowService");
+const FavoriteIndexService = require("../services/FavoriteIndexService");
+const FavoriteDeleteService = require("../services/FavoriteDeleteService");
+
+const favoriteRepository = new FavoriteRepository();
 
 class FavoritesController {
     async create(req, res) {
-        try {
-            const { user_id, dish_id } = req.body;
+        const { userId, dishId } = req.body;
 
-            const [checkIfIsFavorite] = await knex("favorites").where("dish_id", dish_id);
+        const favoriteCreateService = new FavoriteCreateService(favoriteRepository);
 
-            if (checkIfIsFavorite) {
-                await knex("favorites").where("id", checkIfIsFavorite.id).delete();
-                return res.json({ Mensagem: "Removido dos favoritos.", favorite: false });
-            };
+        const response = await favoriteCreateService.execute(userId, dishId);
 
-            await knex("favorites").insert({
-                user_id,
-                dish_id
-            });
+        return res.status(201).json(response);
+    };
 
-            return res.status(200).json({ Mensagem: "Adicionado aos favoritos.", favorite: true });
-        } catch {
-            throw new AppError("Não foi possível adicionar/remover dos favoritos.", 500);
-        };
+    async show(req, res) {
+        const favoriteShowService = new FavoriteShowService(favoriteRepository);
+
+        const allFavorites = await favoriteShowService.execute();
+
+        return res.status(200).json(allFavorites);
     };
 
     async index(req, res) {
-        try {
-            const { user_id } = req.params;
+        const { user_id } = req.params;
 
-            const userFavorites = await knex("favorites")
-                .select("favorites.id", "favorites.dish_id", "dishes.image", "dishes.name")
-                .join("dishes", "favorites.dish_id", "dishes.id")
-                .where("favorites.user_id", user_id);
+        const favoriteIndexService = new FavoriteIndexService(favoriteRepository);
 
-            return res.status(200).json(userFavorites);
-        } catch {
-            throw new AppError("Não foi possível mostrar os favoritos.", 500);
-        };
+        const userFavorites = await favoriteIndexService.execute(user_id);
+
+        return res.status(200).json(userFavorites);
     };
 
     async delete(req, res) {
-        try {
-            const { id } = req.params;
+        const { id } = req.params;
 
-            await knex("favorites").where({ id }).delete();
+        const favoriteDeleteService = new FavoriteDeleteService(favoriteRepository);
 
-            return res.status(200).json({ Mensagem: "Removido dos favoritos." });
+        const response = await favoriteDeleteService.execute(id);
 
-        } catch {
-            throw new AppError("Não foi possível remover dos favoritos.", 500);
-        };
+        return res.status(200).json(response);
     };
 }
 
-module.exports = FavoritesController
+module.exports = FavoritesController;

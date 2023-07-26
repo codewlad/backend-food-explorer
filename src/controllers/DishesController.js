@@ -1,187 +1,62 @@
-const knex = require("../database/knex");
-const DiskStorage = require("../providers/DiskStorage");
-const AppError = require("../utils/AppError");
+const DishRepository = require("../repositories/DishRepository");
+const DishCreateService = require("../services/DishCreateService");
+const DishUpdateService = require("../services/DishUpdateService");
+const DishShowService = require("../services/DishShowService");
+const DishDeleteService = require("../services/DishDeleteService");
+const DishIndexService = require("../services/DishIndexService");
+
+const dishRepository = new DishRepository();
 
 class DishesController {
     async create(req, res) {
-        try {
-            const { name, category, price, description, ingredients } = req.body;
+        const { name, category, price, description, ingredients } = req.body;
 
-            let imageFilename = null;
+        const dishCreateService = new DishCreateService(dishRepository);
 
-            if (req.file) {
-                const diskStorage = new DiskStorage();
+        const response = await dishCreateService.execute(name, category, price, description, ingredients, req);
 
-                try {
-                    imageFilename = await diskStorage.saveFile(req.file.filename);
-                } catch {
-                    throw new AppError("Erro ao carregar a imagem.", 500);
-                };
-            };
-
-            await knex.transaction(async (trx) => {
-                const [dish] = await trx("dishes").insert({
-                    image: imageFilename,
-                    name,
-                    category,
-                    price,
-                    description
-                }).returning("*");
-
-                const ingredientsInsert = JSON.parse(ingredients).map(name => ({
-                    dish_id: dish.id,
-                    name
-                }));
-
-                await trx("ingredients").insert(ingredientsInsert);
-            });
-
-            return res.status(201).json({ Mensagem: "Prato adicionado com sucesso!" });
-        } catch {
-            throw new AppError("Não foi possível adicionar o prato.", 500);
-        };
+        return res.status(201).json(response);
     };
 
     async update(req, res) {
-        try {
-            const { id } = req.params;
-            const { name, category, price, description, ingredients, removeDishImage } = req.body;
+        const { id } = req.params;
+        const { name, category, price, description, ingredients, removeDishImage } = req.body;
 
-            const dishUpdates = {};
+        const dishUpdateService = new DishUpdateService(dishRepository);
 
-            if (name) {
-                dishUpdates.name = name;
-            };
+        const response = await dishUpdateService.execute(id, name, category, price, description, ingredients, removeDishImage, req);
 
-            if (category) {
-                dishUpdates.category = category;
-            };
-
-            if (price) {
-                dishUpdates.price = price;
-            };
-
-            if (description) {
-                dishUpdates.description = description;
-            };
-
-            let imageFilename = null;
-
-            if (req.file) {
-                const diskStorage = new DiskStorage();
-
-                try {
-                    imageFilename = await diskStorage.saveFile(req.file.filename);
-                    dishUpdates.image = imageFilename;
-                } catch {
-                    throw new AppError("Erro ao carregar a imagem.", 500);
-                };
-            };
-
-            const dish = await knex("dishes").where({ id }).first();
-
-            if (!removeDishImage) {
-                const diskStorage = new DiskStorage();
-                await diskStorage.deleteFile(dish.image);
-                dishUpdates.image = null;
-            };
-
-            await knex.transaction(async (trx) => {
-                await trx("dishes").update(dishUpdates).where("id", id);
-
-                if (ingredients) {
-                    const ingredientsArray = JSON.parse(ingredients);
-
-                    await trx("ingredients").where("dish_id", id).del();
-
-                    if (ingredientsArray.length > 0) {
-                        const ingredientsInsert = ingredientsArray.map(ingredient => ({
-                            dish_id: id,
-                            name: ingredient
-                        }));
-
-                        await trx("ingredients").insert(ingredientsInsert);
-                    };
-                };
-            });
-
-            return res.status(200).json({ message: "Prato atualizado com sucesso!" });
-        } catch {
-            throw new AppError("Não foi possível atualizar o prato!", 500);
-        };
+        return res.status(200).json(response);
     };
 
     async show(req, res) {
-        try {
-            const { id } = req.params;
+        const { id } = req.params;
 
-            const dish = await knex("dishes").where({ id }).first();
-            const ingredients = await knex("ingredients").where({ dish_id: id }).orderBy("name");
+        const dishShowService = new DishShowService(dishRepository);
 
-            return res.status(200).json({
-                ...dish,
-                ingredients
-            });
-        } catch {
-            throw new AppError("Não foi possível mostrar o prato!", 500);
-        };
+        const dishWithIngredients = await dishShowService.execute(id);
+
+        return res.status(200).json(dishWithIngredients);
     };
 
     async delete(req, res) {
-        try {
-            const { id } = req.params;
+        const { id } = req.params;
 
-            await knex("dishes").where({ id }).delete();
+        const dishDeleteService = new DishDeleteService(dishRepository);
 
-            return res.status(200).json({ message: "Prato excluído com sucesso!" });
-        } catch {
-            throw new AppError("Não foi possível excluir o prato!", 500);
-        };
+        const response = await dishDeleteService.execute(id);
+
+        return res.status(200).json(response);
     };
 
     async index(req, res) {
-        try {
-            const { itemSearch } = req.query;
+        const { itemSearch } = req.query;
 
-            let dishes;
+        const dishIndexService = new DishIndexService(dishRepository);
 
-            if (itemSearch) {
-                dishes = await knex("ingredients")
-                    .distinct("dishes.id")
-                    .select([
-                        "dishes.id",
-                        "dishes.image",
-                        "dishes.name",
-                        "dishes.category",
-                        "dishes.price",
-                        "dishes.description",
-                    ])
-                    .where(function () {
-                        this.whereLike("dishes.name", `%${itemSearch}%`)
-                            .orWhereLike("ingredients.name", `%${itemSearch}%`);
-                    })
-                    .innerJoin("dishes", "dishes.id", "ingredients.dish_id");
+        const dishWithIngredients = await dishIndexService.execute(itemSearch);
 
-            } else {
-                dishes = await knex("dishes")
-                    .orderBy("name");
-            };
-
-            const dishesIngredients = await knex("ingredients");
-
-            const dishesWithIngredients = dishes.map(dish => {
-                const dishIngredients = dishesIngredients.filter(ingredient => ingredient.dish_id === dish.id);
-
-                return {
-                    ...dish,
-                    ingredients: dishIngredients
-                };
-            });
-
-            return res.status(200).json(dishesWithIngredients);
-        } catch {
-            throw new AppError("Não foi possível realizar a busca.", 500);
-        };
+        return res.status(200).json(dishWithIngredients);
     };
 }
 
