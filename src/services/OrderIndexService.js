@@ -6,39 +6,41 @@ class OrderIndexService {
     }
 
     async execute({ id }) {
-        try {
-            const orders = await this.orderRepository.filterOrdersByUserId(id);
+        //try {
+        const orders = await this.orderRepository.filterOrdersByUserId(id);
 
-            if (!orders || orders.length === 0) {
-                return res.json([]);
-            };
+        if (!orders || orders.length === 0) {
+            const orderWithDishes = [];
+            return orderWithDishes;
+        };
 
-            const ordersWithDishes = [];
+        const ordersWithDishes = [];
 
-            for (const order of orders) {
-                const orderItems = await this.orderRepository.getOrdersWithDishes(id);
+        for (const order of orders) {
+            const orderItems = await this.orderRepository.getOrdersWithDishes(id);
 
-                const dishes = orderItems.map(item => ({
-                    dish_id: item.dish_id,
-                    image: item.image,
-                    name: item.name,
-                    amount: item.amount,
-                    total: item.total
-                }));
+            const dishes = orderItems.map(item => ({
+                dish_id: item.dish_id,
+                image: item.image,
+                name: item.name,
+                amount: item.amount,
+                total: item.total
+            }));
 
-                const totalAmountResult = await this.orderRepository.calculateTotalAmount(id);
+            const totalAmountResult = await this.orderRepository.calculateTotalAmount(id);
 
-                const totalAmount = totalAmountResult.totalAmount || 0;
+            const totalAmount = totalAmountResult.totalAmount || 0;
 
-                const orderWithDishes = { ...order, dishes, totalAmount };
+            const orderWithDishes = { ...order, dishes, totalAmount };
 
-                ordersWithDishes.push(orderWithDishes);
-            };
+            ordersWithDishes.push(orderWithDishes);
+        };
 
-            return ordersWithDishes;
-        } catch {
+        return ordersWithDishes;
+        /*} catch {
             throw new AppError("Ocorreu um erro ao buscar os pedidos.", 500);
         };
+        */
     };
 }
 
