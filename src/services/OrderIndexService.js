@@ -17,7 +17,7 @@ class OrderIndexService {
             const ordersWithDishes = [];
 
             for (const order of orders) {
-                const orderItems = await this.orderRepository.getOrdersWithDishes(id);
+                const orderItems = await this.orderRepository.getOrdersWithDishes(order.id);
 
                 const dishes = orderItems.map(item => ({
                     dish_id: item.dish_id,
@@ -27,7 +27,7 @@ class OrderIndexService {
                     total: item.total
                 }));
 
-                const totalAmountResult = await this.orderRepository.calculateTotalAmount(id);
+                const totalAmountResult = await this.orderRepository.calculateTotalAmount(order.id);
 
                 const totalAmount = totalAmountResult.totalAmount || 0;
 
