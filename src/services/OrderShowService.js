@@ -10,7 +10,8 @@ class OrderShowService {
             const orders = await this.orderRepository.showAllOrders();
 
             if (!orders || orders.length === 0) {
-                return res.json([]);
+                const orderWithDishes = [];
+                return orderWithDishes;
             };
 
             const ordersWithDishes = [];
