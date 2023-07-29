@@ -10,7 +10,9 @@ const MULTER = {
         destination: TMP_FOLDER,
         filename(req, file, callback) {
             const fileHash = crypto.randomBytes(10).toString("hex");
-            const fileName = `${fileHash}-${file.originalname}`;
+            const regex = /[^a-zA-Z0-9.]/g;
+            const newFilename = file.originalname.replace(regex, '');
+            const fileName = `${fileHash}-${newFilename}`;
 
             return callback(null, fileName);
         },
