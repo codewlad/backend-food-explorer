@@ -27,7 +27,7 @@ class OrderCreateService {
             const newOrder = {
                 user_id: order.user_id,
                 total,
-                orders_at: new Date().toLocaleString("en-US", { hour12: false }),
+                orders_at: order.orders_at,
                 status: order.status
             };
 
