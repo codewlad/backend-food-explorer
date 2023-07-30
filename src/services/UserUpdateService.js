@@ -36,13 +36,17 @@ class UserUpdateService {
             user.password = await hash(password, 8);
         };
 
+        const currentDate = new Date();
+
+        currentDate.setHours(currentDate.getHours() + 3);
+
         await this.userRepository.update({
             id: user.id,
             name: user.name,
             email: user.email,
             password: user.password,
             created_at: user.created_at,
-            updated_at: new Date().toLocaleString()
+            updated_at: currentDate.toLocaleString("en-US", { hour12: false })
         });
     };
 }

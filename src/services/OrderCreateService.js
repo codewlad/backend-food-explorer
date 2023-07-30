@@ -27,8 +27,8 @@ class OrderCreateService {
             const newOrder = {
                 user_id: order.user_id,
                 total,
-                orders_at: new Date().toLocaleString(),
-                status: order.status,
+                orders_at: new Date().toLocaleString("en-US", { hour12: false }),
+                status: order.status
             };
 
             const [order_id] = await this.orderRepository.createOrder(newOrder);

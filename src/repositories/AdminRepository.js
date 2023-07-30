@@ -7,8 +7,8 @@ class AdminRepository {
             email,
             is_admin: true,
             password,
-            created_at: new Date().toLocaleString(),
-            updated_at: new Date().toLocaleString()
+            created_at: new Date().toLocaleString("en-US", { hour12: false }),
+            updated_at: new Date().toLocaleString("en-US", { hour12: false })
         });
     };
 

@@ -21,7 +21,7 @@ class UserAvatarUpdateService {
 
         const filename = await diskStorage.saveFile(avatarFilename);
         user.avatar = filename;
-        user.updated_at = new Date().toLocaleString();
+        user.updated_at = new Date().toLocaleString("en-US", { hour12: false });
 
         await this.userAvatarRepository.update({ user });
 

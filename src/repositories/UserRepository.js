@@ -12,8 +12,8 @@ class UserRepository {
             name,
             email,
             password,
-            created_at: new Date().toLocaleString(),
-            updated_at: new Date().toLocaleString()
+            created_at: new Date().toLocaleString("en-US", { hour12: false }),
+            updated_at: new Date().toLocaleString("en-US", { hour12: false })
         });
 
         return { id: userId };
@@ -31,7 +31,7 @@ class UserRepository {
             email,
             password,
             created_at,
-            updated_at: new Date().toLocaleString()
+            updated_at: new Date().toLocaleString("en-US", { hour12: false })
         });
     };
 }
