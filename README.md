@@ -119,7 +119,7 @@ A porta padrão para o Front End é 5173 - acesse <http://localhost:5173>
 ### Autor
 ---
 
-<a href="https://codewlad.com.br">
+<a href="https://codewlad.vercel.app/">
  <img style="border-radius: 50%;" src="https://github.com/codewlad.png" width="100px;" alt="Imagem de codewlad"/>
  <br />
  <sub><b>Wladimir Gonçalves</b></sub></a>
@@ -129,3 +129,4 @@ Feito com ❤️ por Wladimir Gonçalves 👋🏽 Entre em contato!
 
 [![Linkedin Badge](https://img.shields.io/badge/LinkedIn-0077B5?logo=Linkedin&logoColor=white&link=https://www.linkedin.com/in/wladimir-gonçalves/)](https://www.linkedin.com/in/wladimir-gonçalves/) 
 [![Gmail Badge](https://img.shields.io/badge/-codewlad@gmail.com-c14438?logo=Gmail&logoColor=white&link=mailto:codewlad@gmail.com)](mailto:codewlad@gmail.com)
+[![Static Badge](https://img.shields.io/badge/Portfolio-orange?link=https://codewlad.vercel.app/)](https://codewlad.vercel.app/)
