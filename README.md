@@ -11,6 +11,10 @@
 O foodExplorer é uma aplicação web que simula um cardápio digital para um restaurante fictício. Este é o projeto final do curso Explorer da Rocketseat!
 <br /><br />
 
+# 🚀 Acesse o Food Explorer
+https://codewlad-foodexplorer.vercel.app/
+<br /><br />
+
 # ✅ Funcionalidades
 - [x] Cadastro de administrador e usuários
 - [x] Cadastro, edição e exclusão de produtos (administrador)
@@ -55,7 +59,7 @@ O foodExplorer é uma aplicação web que simula um cardápio digital para um re
 </div>
 <br /><br />
 
-# 🚀 Como rodar o projeto
+# 💻 Como rodar o projeto
 
 ### Pré-requisitos:
 
