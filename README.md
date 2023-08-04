@@ -12,7 +12,7 @@ O foodExplorer é uma aplicação web que simula um cardápio digital para um re
 <br /><br />
 
 # 🚀 Acesse o Food Explorer
-https://codewlad-foodexplorer.vercel.app/
+https://codewlad-foodexplorer.netlify.app/
 <br /><br />
 
 # ✅ Funcionalidades
